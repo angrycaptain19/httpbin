@@ -1270,7 +1270,7 @@ def drip():
     pause = duration / numbytes
 
     def generate_bytes():
-        for i in xrange(numbytes):
+        for _ in xrange(numbytes):
             yield b"*"
             time.sleep(pause)
 
@@ -1335,13 +1335,13 @@ def cache():
         "If-None-Match"
     )
 
-    if is_conditional is None:
-        response = view_get()
-        response.headers["Last-Modified"] = http_date()
-        response.headers["ETag"] = uuid.uuid4().hex
-        return response
-    else:
+    if is_conditional is not None:
         return status_code(304)
+
+    response = view_get()
+    response.headers["Last-Modified"] = http_date()
+    response.headers["ETag"] = uuid.uuid4().hex
+    return response
 
 
 @app.route("/etag/<etag>", methods=("GET",))
@@ -1480,7 +1480,7 @@ def stream_random_bytes(n):
     def generate_bytes():
         chunks = bytearray()
 
-        for i in xrange(n):
+        for _ in xrange(n):
             chunks.append(random.randint(0, 255))
             if len(chunks) == chunk_size:
                 yield (bytes(chunks))

@@ -109,7 +109,7 @@ def json_safe(string, content_type='application/octet-stream'):
 def get_files():
     """Returns files dict from request context."""
 
-    files = dict()
+    files = {}
 
     for k, v in request.files.items():
         content_type = request.files[k].content_type or 'application/octet-stream'
@@ -143,14 +143,14 @@ def semiflatten(multi):
     """Convert a MutiDict into a regular dict. If there are more than one value
     for a key, the result will have a list of values for the key. Otherwise it
     will have the plain value."""
-    if multi:
-        result = multi.to_dict(flat=False)
-        for k, v in result.items():
-            if len(v) == 1:
-                result[k] = v[0]
-        return result
-    else:
+    if not multi:
         return multi
+
+    result = multi.to_dict(flat=False)
+    for k, v in result.items():
+        if len(v) == 1:
+            result[k] = v[0]
+    return result
 
 def get_url(request):
     """
@@ -194,10 +194,7 @@ def get_dict(*keys, **extras):
         method=request.method,
     )
 
-    out_d = dict()
-
-    for key in keys:
-        out_d[key] = d.get(key)
+    out_d = {key: d.get(key) for key in keys}
 
     out_d.update(extras)
 
@@ -336,7 +333,7 @@ def response(credentials, password, request):
             credentials.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]), algorithm)
-    elif credentials.get('qop') == 'auth' or credentials.get('qop') == 'auth-int':
+    elif credentials.get('qop') in ['auth', 'auth-int']:
         for k in 'nonce', 'nc', 'cnonce', 'qop':
             if k not in credentials:
                 raise ValueError("%s required for response H" % k)
